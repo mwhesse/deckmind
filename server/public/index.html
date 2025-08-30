@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DevAgent Cockpit</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; }
+      header { padding: 12px 16px; background: #0f172a; color: #fff; }
+      main { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+      h2 { margin-top: 0; }
+      label { display: block; margin: 6px 0 4px; }
+      input, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+      button { padding: 8px 12px; cursor: pointer; }
+      .row { display: flex; gap: 8px; align-items: center; }
+      .agent { padding: 8px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; }
+      .muted { color: #6b7280; }
+      pre { background: #0b1020; color: #d1d5db; padding: 8px; border-radius: 6px; height: 240px; overflow: auto; }
+      /* Make xterm fill its container fully */
+      #terminal { height: 100%; display: block; }
+      #terminal .xterm { height: 100% !important; width: 100% !important; }
+      #terminal .xterm-viewport { height: 100% !important; }
+      #terminal .xterm-screen { height: 100% !important; }
+      #terminal .xterm-helpers { height: 0 !important; }
+      /* Resizer handle between editor and terminal */
+      .col-resizer { width: 6px; cursor: col-resize; background: #e5e7eb; border-radius: 3px; }
+      .col-resizer:hover { background: #cbd5e1; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>DevAgent Cockpit</h1>
+    </header>
+    <main>
+      <section id="listView">
+        <h2>Launch Agent</h2>
+        <label>Project</label>
+        <div class="row">
+          <select id="projectSelect" style="flex:1 1 auto"></select>
+          <button id="refreshProjectsBtn" title="Refresh">Refresh</button>
+        </div>
+        <label>Branch Slug (required)</label>
+        <input id="branchSlug" placeholder="add-cool-thing" />
+        <label>Instructions</label>
+        <textarea id="instructions" rows="6" placeholder="Short task brief for the agent..."></textarea>
+        <div class="row" style="margin-top:8px">
+          <button id="launchBtn">Start Agent</button>
+        </div>
+      </section>
+      <section>
+        <h2>Agents</h2>
+        <div id="agents"></div>
+      </section>
+      <section id="detailsView" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position:absolute; inset:0; width: 100vw; height: 100vh; background: #fff; border-radius: 0; box-shadow: none; display:flex; flex-direction:column;">
+          <div class="row" style="justify-content: space-between; align-items:center; padding:10px 12px; border-bottom: 1px solid #e5e7eb;">
+            <h2 style="margin:0;">Agent Workspace</h2>
+            <button id="closeModalBtn">Close</button>
+          </div>
+          <div id="workspaceMeta" class="muted" style="padding:6px 12px 0; font-family: ui-monospace, monospace; font-size:12px;">
+            Path: <code id="workspacePath">-</code>
+          </div>
+          <div style="flex:1; overflow:hidden; padding:12px; display:flex; flex-direction:column; gap:12px;">
+            <div id="workspace" style="flex:1 1 auto; min-height:0; display:grid; grid-template-columns: 300px 1.25fr 6px 0.75fr; grid-template-rows: 1fr 220px; gap:12px;">
+              <!-- Files side bar -->
+              <div style="grid-row: 1 / 3; border:1px solid #e5e7eb; border-radius:6px; overflow:auto;">
+                <div style="padding:6px 8px; font-weight:600; border-bottom:1px solid #eee;">Files</div>
+                <div id="fileTree" style="font-family: ui-monospace, Menlo, monospace; font-size:12px; padding:6px 8px;"></div>
+              </div>
+              <!-- Editor pane -->
+              <div style="grid-column: 2; grid-row: 1; border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; min-height:0;">
+                <div id="editorHeader" style="padding:6px 8px; background:#f8fafc; border-bottom:1px solid #eee; font-family: ui-monospace, monospace; font-size:12px;">No file selected</div>
+                <textarea id="editor" style="flex:1; min-height:0; resize:none; border:0; outline:none; padding:8px; font-family: ui-monospace, Menlo, monospace; font-size:12px;"></textarea>
+                <div style="padding:6px 8px; border-top:1px solid #eee;">
+                  <button id="saveFileBtn">Save</button>
+                </div>
+              </div>
+              <!-- Drag handle between editor and terminal -->
+              <div id="colResizer" class="col-resizer" style="grid-column: 3; grid-row: 1;"></div>
+              <!-- Terminal pane -->
+              <div style="grid-column: 4; grid-row: 1; border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; min-height:0;">
+                <div class="row" style="padding:6px 8px; background:#f8fafc; border-bottom:1px solid #eee; align-items:center;">
+                  <div style="font-weight:600;">Terminal</div>
+                  <div style="flex:1"></div>
+                  <span id="terminalStatus" class="muted">Checking…</span>
+                </div>
+                <div id="terminal" style="flex:1; min-height:0; border-top:0;"></div>
+              </div>
+              <!-- Git panel spanning bottom across editor+terminal -->
+              <div style="grid-column: 2 / 5; grid-row: 2; display:grid; grid-template-columns: 1fr 320px; gap:12px; align-items:start;">
+                <div style="border:1px solid #e5e7eb; border-radius:6px; overflow:auto;">
+                  <div style="padding:6px 8px; background:#f8fafc; border-bottom:1px solid #eee; font-weight:600;">Git Status</div>
+                  <pre id="gitStatus" style="margin:0; height:200px;"></pre>
+                </div>
+                <div style="border:1px solid #e5e7eb; border-radius:6px; padding:8px;">
+                  <div style="font-weight:600; margin-bottom:6px;">Commit</div>
+                  <input id="commitMsg" placeholder="Commit message" />
+                  <div class="row" style="margin-top:6px;">
+                    <button id="commitBtn">Commit</button>
+                    <button id="pushBtn">Push</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
+    <script src="https://unpkg.com/xterm-addon-fit@0.9.0/dist/xterm-addon-fit.min.js"></script>
+    <script src="/app.js"></script>
+  </body>
+  </html>

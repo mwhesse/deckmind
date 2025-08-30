@@ -1,0 +1,28 @@
+#!/usr/bin/expect -f
+# Spawn Claude in a PTY, send instructions, then remain interactive.
+set timeout -1
+
+# Read instructions file (if present)
+set instr_path "/workspace/INSTRUCTIONS.md"
+set instr ""
+if {[file exists $instr_path]} {
+  set fh [open $instr_path r]
+  set instr [read $fh]
+  close $fh
+} else {
+  set instr "No INSTRUCTIONS.md found. Provide instructions and re-run."
+}
+
+# Launch Claude with a system message
+set sysmsg "You are on a feature branch in the /workspace/repo directory, read the instructions in the file /workspace/INSTRUCTIONS.md and start working."
+spawn -noecho claude --dangerously-skip-permissions $sysmsg
+
+# Small delay to let the UI initialize
+after 500
+
+# Send the instructions content followed by Enter
+# send -- "$instr\r"
+
+# Hand over interactive control to the user (browser terminal)
+interact
+

@@ -1,0 +1,17 @@
+node_modules/
+.env
+dist/
+.DS_Store
+Thumbs.db
+*.log
+server/.env
+server/node_modules/
+server/npm-debug.log*
+server/pnpm-lock.yaml
+server/yarn.lock
+server/package-lock.json
+agent/__pycache__/
+agent/.venv/
+agent/.mypy_cache/
+agent/home/
+agent-dir/

@@ -55,7 +55,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Browser   │────│   Express API   │────│   Docker Engine  │
+│   Web Browser   │────│   Express API   │────│   Docker Engine │
 │   (React App)   │    │   (Node.js)     │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
@@ -63,8 +63,8 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  File Browser   │    │   Agent Mgmt    │    │   Agent         │
-│  Code Editor    │    │   Workspaces     │    │   Containers    │
-│  Git Controls   │    │   Projects       │    │   (Ubuntu + AI) │
+│  Code Editor    │    │   Workspaces    │    │   Containers    │
+│  Git Controls   │    │   Projects      │    │   (Ubuntu + AI) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 

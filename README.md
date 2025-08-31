@@ -121,6 +121,108 @@ Before building the agent Docker images, you need to configure the authenticatio
 - **Updates:** Rebuild Docker images after updating credentials
 - **Multiple Users:** Each user should set up their own credentials
 
+## 📁 Project & Workspace Management
+
+Deckmind uses a structured approach to manage projects and agent workspaces, ensuring clean separation between source repositories and agent working environments.
+
+### Configuration
+
+Set these environment variables in `server/.env`:
+
+```bash
+# Directory containing your local Git repositories (source projects)
+PROJECTS_ROOT=/path/to/your/projects
+
+# Directory where agent workspaces will be created
+WORKSPACES_DIR=/path/to/workspaces
+```
+
+**Example:**
+```bash
+PROJECTS_ROOT=/home/user/projects
+WORKSPACES_DIR=/home/user/deckmind-workspaces
+```
+
+### Project Structure Requirements
+
+**All directories in `PROJECTS_ROOT` must be local Git repositories:**
+
+```
+/home/user/projects/
+├── my-web-app/          # Must be a Git repo
+│   ├── .git/
+│   ├── src/
+│   └── package.json
+├── api-service/         # Must be a Git repo
+│   ├── .git/
+│   └── server.js
+└── mobile-app/          # Must be a Git repo
+    ├── .git/
+    └── ios/
+```
+
+### Agent Lifecycle & Workspace Management
+
+#### 1. **Project Selection**
+- User selects a project from the dropdown (populated from `PROJECTS_ROOT`)
+- Deckmind validates the selected directory is a valid Git repository
+
+#### 2. **Workspace Creation**
+- Server creates unique workspace: `WORKSPACES_DIR/{agentId}/`
+- Clones the selected project: `WORKSPACES_DIR/{agentId}/repo/`
+- Creates feature branch: `feature/{branchSlug}`
+- Writes instructions to: `WORKSPACES_DIR/{agentId}/INSTRUCTIONS.md`
+
+#### 3. **Agent Execution**
+- Docker container mounts the workspace: `/workspace → WORKSPACES_DIR/{agentId}`
+- Agent reads instructions from `/workspace/INSTRUCTIONS.md`
+- Agent works in `/workspace/repo/` (the cloned repository)
+- Agent executes tasks using Claude or Codex AI
+
+#### 4. **Git Workflow**
+- Agent makes changes to files in `/workspace/repo/`
+- Agent commits changes with descriptive messages
+- Agent can push changes back to origin (optional)
+
+#### 5. **Workspace Persistence**
+- Workspace remains available for inspection via the UI
+- Files can be edited through the web interface
+- Git status, commits, and pushes can be performed
+- Workspace is cleaned up when agent is stopped
+
+### Directory Structure Example
+
+```
+WORKSPACES_DIR/
+└── abc123-def456/                    # Agent workspace
+    ├── repo/                         # Cloned Git repository
+    │   ├── .git/
+    │   ├── src/
+    │   ├── README.md
+    │   └── package.json
+    ├── INSTRUCTIONS.md               # Agent instructions
+    └── .git/                         # Git repo for workspace
+```
+
+### Key Benefits
+
+- **Isolation:** Each agent works in its own clean workspace
+- **Safety:** Source repositories are never modified directly
+- **Persistence:** Workspaces remain accessible after agent completion
+- **Collaboration:** Multiple agents can work on the same project simultaneously
+- **Version Control:** Full Git history tracking for all changes
+
+### Docker Volume Mounting
+
+The agent container uses this volume mount:
+```dockerfile
+-v WORKSPACES_DIR/{agentId}:/workspace:rw
+```
+
+This gives the agent full access to:
+- `/workspace/repo/` - The cloned repository
+- `/workspace/INSTRUCTIONS.md` - Task instructions
+
 ## 🚀 Quick Start
 
 ### Prerequisites

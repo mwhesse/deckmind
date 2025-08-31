@@ -14,8 +14,8 @@ if {[file exists $instr_path]} {
 }
 
 # Launch Claude with a system message
-set sysmsg "You are on a feature branch in the /workspace/repo directory, read the instructions in the file /workspace/INSTRUCTIONS.md and start working."
-spawn -noecho claude --dangerously-skip-permissions $sysmsg
+set sysmsg "You are on a feature branch in the /workspace/repo directory. ***NEVER DELETE THE .git OR THE repo DIRECTORY***. Read the instructions in the file /workspace/INSTRUCTIONS.md and start working. When you are done, provide a final result output as a pull request description and generate a single line summary of the changes that you just made suitable for a pull request title and write all this to /workspace/COMPLETED.md"
+spawn -noecho claude --verbose --dangerously-skip-permissions $sysmsg
 
 # Small delay to let the UI initialize
 after 500

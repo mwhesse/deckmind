@@ -11,7 +11,7 @@ export function createDocker() {
 
 export function agentLabels(agentId) {
   return {
-    'com.devagent.cockpit': 'true',
-    'com.devagent.agentId': agentId,
+    'com.deckmind.cockpit': 'true',
+    'com.deckmind.agentId': agentId,
   };
 }

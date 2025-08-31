@@ -8,6 +8,7 @@ import agentsRouter from './routes/agents.js';
 import { attachTerminalServer } from './terminal.js';
 import workspacesRouter from './routes/workspaces.js';
 import projectsRouter from './routes/projects.js';
+import templatesRouter from './routes/templates.js';
 import { createDocker } from './docker.js';
 
 dotenv.config();
@@ -22,25 +23,36 @@ app.use(express.json({ limit: '2mb' }));
 app.use('/api/agents', agentsRouter);
 app.use('/api/workspaces', workspacesRouter);
 app.use('/api/projects', projectsRouter);
+app.use('/api/templates', templatesRouter);
 
 const publicDir = path.join(__dirname, '..', 'public');
 app.use(express.static(publicDir));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+// Catch-all handler: send back index.html for client-side routing
+app.get('*', (req, res) => {
+  // Only serve index.html for non-API routes
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(publicDir, 'index.html'));
+  } else {
+    res.status(404).json({ error: 'API endpoint not found' });
+  }
+});
+
 const port = Number(process.env.PORT || 8088);
 const server = http.createServer(app);
 attachTerminalServer(server);
 server.listen(port, () => {
   // eslint-disable-next-line no-console
-  console.log(`DevAgent cockpit listening on http://localhost:${port}`);
+  console.log(`Deckmind server listening on http://localhost:${port}`);
 });
 
-// Scan for existing containers labeled as DevAgent agents on startup
+// Scan for existing containers labeled as Deckmind agents on startup
 const docker = createDocker();
 async function scanExistingAgents() {
   try {
-    const list = await docker.listContainers({ all: true, filters: { label: ['com.devagent.cockpit=true'] } });
+    const list = await docker.listContainers({ all: true, filters: { label: ['com.deckmind.cockpit=true'] } });
     const summaries = list.map((c) => {
       const labels = c.Labels || {};
       const ports = c.Ports || [];
@@ -50,14 +62,14 @@ async function scanExistingAgents() {
         name: c.Names?.[0]?.replace(/\//, '') || '',
         state: c.State,
         status: c.Status,
-        agentId: labels['com.devagent.agentId'] || '',
+        agentId: labels['com.deckmind.agentId'] || '',
         port: pub?.PublicPort || null,
       };
     });
     // Stash for potential diagnostics
     app.locals.knownAgents = summaries;
     // eslint-disable-next-line no-console
-    console.log(`Startup scan: found ${summaries.length} DevAgent container(s).`);
+    console.log(`Startup scan: found ${summaries.length} Deckmind container(s).`);
     summaries.forEach(s => {
       // eslint-disable-next-line no-console
       console.log(` - ${s.name || s.id} [agentId=${s.agentId}] state=${s.state} port=${s.port ?? '-'} `);

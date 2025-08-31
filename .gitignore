@@ -10,8 +10,13 @@ server/npm-debug.log*
 server/pnpm-lock.yaml
 server/yarn.lock
 server/package-lock.json
-agent/__pycache__/
-agent/.venv/
-agent/.mypy_cache/
-agent/home/
+claude-agent/__pycache__/
+claude-agent/.venv/
+claude-agent/.mypy_cache/
+claude-agent/home/*
+!claude-agent/home/README
+
 agent-dir/
+claude-agent-home/
+
+client/build

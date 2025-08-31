@@ -10,7 +10,7 @@ const execFile = promisify(_execFile);
 const router = express.Router();
 const docker = createDocker();
 
-const AGENT_IMAGE = process.env.AGENT_IMAGE || 'devagent/agent:latest';
+const AGENT_IMAGE = process.env.AGENT_IMAGE || 'deckmind/agent:latest';
 const DEFAULT_AGENT_PORT = Number(process.env.DEFAULT_AGENT_PORT || '8080');
 const PROJECTS_ROOT = process.env.PROJECTS_ROOT || '/host/projects';
 const WORKSPACES_DIR = process.env.WORKSPACES_DIR || '/host/workspaces';
@@ -87,17 +87,17 @@ function toAgentSummary(containerInfo) {
     name: containerInfo.Names?.[0]?.replace(/\//, '') || '',
     state: containerInfo.State,
     status: containerInfo.Status,
-    agentId: labels['com.devagent.agentId'] || '',
-    repoUrl: labels['com.devagent.repoUrl'] || '',
-    instructionsPreview: labels['com.devagent.instructionsPreview'] || '',
-    branchSlug: labels['com.devagent.branchSlug'] || '',
+    agentId: labels['com.deckmind.agentId'] || '',
+    repoUrl: labels['com.deckmind.repoUrl'] || '',
+    instructionsPreview: labels['com.deckmind.instructionsPreview'] || '',
+    branchSlug: labels['com.deckmind.branchSlug'] || '',
     port: pub?.PublicPort || null,
   };
 }
 
 router.get('/', async (req, res, next) => {
   try {
-    const list = await docker.listContainers({ all: true, filters: { label: ['com.devagent.cockpit=true'] } });
+    const list = await docker.listContainers({ all: true, filters: { label: ['com.deckmind.cockpit=true'] } });
     res.json(list.map(toAgentSummary));
   } catch (e) { next(e); }
 });
@@ -149,9 +149,9 @@ router.post('/', async (req, res, next) => {
 
     const labels = {
       ...agentLabels(agentId),
-      'com.devagent.repoUrl': localSource,
-      'com.devagent.instructionsPreview': (instructions || '').slice(0, 80),
-      ...(slug ? { 'com.devagent.branchSlug': slug } : {}),
+      'com.deckmind.repoUrl': localSource,
+      'com.deckmind.instructionsPreview': (instructions || '').slice(0, 80),
+      ...(slug ? { 'com.deckmind.branchSlug': slug } : {}),
     };
 
     const env = [
@@ -169,7 +169,7 @@ router.post('/', async (req, res, next) => {
       `WORKSPACE_DIR=/workspace`,
     ];
 
-    const containerName = ['devagent', slug, agentId].filter(Boolean).join('-');
+    const containerName = ['deckmind', slug, agentId].filter(Boolean).join('-');
 
     // Prepare the branch in the workspace before launching the agent
     await checkoutBranch(hostRepoPath, fullBranchName);

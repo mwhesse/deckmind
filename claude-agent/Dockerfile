@@ -16,6 +16,7 @@ RUN addgroup -S agent \
 ENV HOME=/home/agent
 
 # Copy authentication files for non-root user (optional)
+# COPY home/ /home/agent/
 COPY home/.gitconfig /home/agent/.gitconfig
 COPY home/.claude.json /home/agent/.claude.json
 COPY home/.claude/ /home/agent/.claude/
@@ -39,6 +40,9 @@ RUN chmod +x /usr/local/bin/run-claude.expect && chown agent:agent /usr/local/bi
 # Bootstrap as root to fix workspace perms, then drop to agent
 COPY boot.sh /usr/local/bin/boot.sh
 RUN chmod +x /usr/local/bin/boot.sh
+
+# Fix npm permissions
+RUN chown -R agent:agent /home/agent/.npm
 
 USER root
 ENTRYPOINT ["/sbin/tini", "-g", "--", "/usr/local/bin/boot.sh"]

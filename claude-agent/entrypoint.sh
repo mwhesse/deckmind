@@ -4,11 +4,6 @@ set -euo pipefail
 # Start a tmux session in the repo
 tmux new-session -d -s agent -c /workspace/repo
 
-# Stream tmux pane output to a workspace log, then tail it to container stdout
-LOG_FILE=/workspace/claude.log
-rm -f "$LOG_FILE" || true
-tmux pipe-pane -t agent:0.0 "cat >> $LOG_FILE"
-tail -F "$LOG_FILE" &
 
 # Configure tmux for better UX and responsive resizing
 tmux set -gq mouse on

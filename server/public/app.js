@@ -1,10 +1,11 @@
-/* Minimal SPA logic for DevAgent Cockpit */
+/* Minimal SPA logic for Deckmind */
 
 const $ = (sel) => document.querySelector(sel);
 const agentsEl = $('#agents');
 const listViewEl = $('#listView');
 const detailsViewEl = $('#detailsView');
 const closeModalBtn = $('#closeModalBtn');
+const themeToggleBtn = $('#themeToggle');
 const terminalEl = $('#terminal');
 const terminalStatusEl = $('#terminalStatus');
 const projectSelectEl = $('#projectSelect');
@@ -21,6 +22,7 @@ let fitAddon = null;
 let termSocket = null;
 let projects = [];
 let termResizeObserver = null;
+let currentTheme = null;
 
 async function api(path, opts = {}) {
   const res = await fetch(path, {
@@ -71,6 +73,34 @@ function renderAgents() {
   }
 }
 
+// ----- Theme handling -----
+function applyTheme(theme) {
+  currentTheme = theme;
+  const root = document.documentElement;
+  if (theme === 'light') root.classList.add('light'); else root.classList.remove('light');
+  localStorage.setItem('theme', theme);
+  // Update editor theme
+  try { if (window.CodeMirror && cm) cm.setOption('theme', theme === 'light' ? 'eclipse' : 'material'); } catch {}
+  // Update xterm theme
+  try {
+    if (term) {
+      const dark = theme !== 'light';
+      term.setOption('theme', dark ? { background: '#0b1020', foreground: '#e5e7eb', cursor: '#22d3ee', selectionBackground: '#22d3ee55' } : { background: '#ffffff', foreground: '#111827', cursor: '#7c3aed', selectionBackground: '#7c3aed33' });
+      fitTerminal();
+    }
+  } catch {}
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(saved || (prefersLight ? 'light' : 'dark'));
+}
+
+themeToggleBtn?.addEventListener('click', () => {
+  applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+});
+
 async function refreshAgents() {
   try {
     const res = await api('/api/agents');
@@ -111,6 +141,7 @@ function selectAgent(id) {
   }
   selectedAgentId = a.agentId || null;
   detailsViewEl.style.display = 'block';
+  initCodeEditor();
   loadTree('');
   refreshGitStatus();
   // Reset terminal session on selection change
@@ -278,6 +309,7 @@ refreshProjectsBtn.addEventListener('click', () => refreshProjects());
 refreshAgents();
 setInterval(refreshAgents, 5000);
 refreshProjects();
+initTheme();
 
 // ---- Workspace browser + editor ----
 const fileTreeEl = $('#fileTree');
@@ -292,6 +324,45 @@ const workspaceEl = $('#workspace');
 const colResizerEl = $('#colResizer');
 
 let currentPath = '';
+let cm = null;
+
+function initCodeEditor() {
+  if (cm || !window.CodeMirror) return;
+  cm = window.CodeMirror.fromTextArea(editorEl, {
+    lineNumbers: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    tabSize: 2,
+    indentUnit: 2,
+    indentWithTabs: false,
+    viewportMargin: Infinity,
+  });
+  // Apply theme based on current selection
+  try {
+    const theme = (document.documentElement.classList.contains('light')) ? 'eclipse' : 'material';
+    cm.setOption('theme', theme);
+  } catch {}
+  setTimeout(() => cm.refresh(), 0);
+  window.addEventListener('resize', () => { try { cm.refresh(); } catch (e) {} });
+}
+
+function modeForPath(p) {
+  const ext = (p || '').split('.').pop().toLowerCase();
+  switch (ext) {
+    case 'js': case 'cjs': case 'mjs': case 'ts': return 'javascript';
+    case 'md': case 'markdown': return 'markdown';
+    case 'html': case 'htm': return 'htmlmixed';
+    case 'css': return 'css';
+    case 'json': return { name: 'javascript', json: true };
+    case 'py': return 'python';
+    case 'yml': case 'yaml': return 'yaml';
+    case 'sh': case 'bash': return 'shell';
+    case 'go': return 'go';
+    case 'rs': return 'rust';
+    case 'java': case 'kt': case 'c': case 'cpp': return 'clike';
+    default: return null;
+  }
+}
 
 // Collapsible tree with lazy loading
 const treeCache = new Map(); // path -> items
@@ -388,12 +459,19 @@ async function openFile(relPath) {
   const text = await res.text();
   currentPath = relPath;
   editorHeaderEl.textContent = relPath || 'No file selected';
-  editorEl.value = text;
+  if (cm) {
+    cm.setOption('mode', modeForPath(relPath));
+    cm.setValue(text);
+    cm.refresh();
+  } else {
+    editorEl.value = text;
+  }
 }
 
 saveFileBtn?.addEventListener('click', async () => {
   if (!selectedAgentId || !currentPath) return alert('No file selected');
-  await api(`/api/workspaces/${selectedAgentId}/file`, { method: 'PUT', body: JSON.stringify({ path: currentPath, content: editorEl.value }) });
+  const content = cm ? cm.getValue() : editorEl.value;
+  await api(`/api/workspaces/${selectedAgentId}/file`, { method: 'PUT', body: JSON.stringify({ path: currentPath, content }) });
   await refreshGitStatus();
 });
 

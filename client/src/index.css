@@ -1,0 +1,150 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+.xterm {
+  font-family: ui-monospace, Menlo, Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+  font-size: 14px !important;
+}
+
+.xterm-viewport {
+  background-color: #0b1020 !important;
+}
+
+.xterm-screen {
+  background-color: #0b1020 !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Material-UI overrides for dark theme */
+.MuiPaper-root {
+  background-image: none !important;
+}
+
+.MuiAppBar-root {
+  background-image: none !important;
+}
+
+/* File tree styling */
+.MuiListItem-root:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Terminal container */
+.terminal-container {
+  background-color: #0b1020;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Code editor styling */
+.code-editor {
+  font-family: ui-monospace, 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+/* Grid resizer styling */
+.grid-resizer {
+  background: linear-gradient(180deg, #7c3aed, #22d3ee);
+  cursor: col-resize;
+  transition: opacity 0.2s;
+}
+
+.grid-resizer:hover {
+  opacity: 0.8;
+}
+
+/* Loading states */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Status indicators */
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-running {
+  background-color: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.status-exited {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.status-pending {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .workspace-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto auto !important;
+  }
+
+  .file-tree {
+    max-height: 200px;
+  }
+
+  .terminal-section {
+    height: 300px;
+  }
+}

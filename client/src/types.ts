@@ -5,6 +5,7 @@ export interface Agent {
   state: string;
   status: string;
   agentId: string;
+  agentType?: string;
   repoUrl: string;
   instructionsPreview?: string;
   branchSlug?: string;

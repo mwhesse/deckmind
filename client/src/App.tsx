@@ -56,6 +56,7 @@ const App: React.FC = () => {
     project: '',
     branchSlug: '',
     instructions: '',
+    agentType: 'claude',
   });
 
   useEffect(() => {
@@ -89,9 +90,10 @@ const App: React.FC = () => {
         repoUrl: launchForm.project,
         branchSlug: launchForm.branchSlug,
         instructions: launchForm.instructions,
+        agentType: launchForm.agentType,
       });
       setShowLaunchDialog(false);
-      setLaunchForm({ project: '', branchSlug: '', instructions: '' });
+      setLaunchForm({ project: '', branchSlug: '', instructions: '', agentType: 'claude' });
       loadAgents();
     } catch (error) {
       console.error('Failed to launch agent:', error);
@@ -112,6 +114,7 @@ const App: React.FC = () => {
       project: '',
       branchSlug: `implement-${template.id}`,
       instructions: template.instructions,
+      agentType: 'claude',
     });
     setShowLaunchDialog(true);
   };
@@ -172,6 +175,17 @@ const App: React.FC = () => {
                         {project}
                       </MenuItem>
                     ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Agent Type</InputLabel>
+                  <Select
+                    value={launchForm.agentType}
+                    onChange={(e) => setLaunchForm({ ...launchForm, agentType: e.target.value })}
+                    label="Agent Type"
+                  >
+                    <MenuItem value="claude">Claude (Anthropic)</MenuItem>
+                    <MenuItem value="codex">Codex (OpenAI)</MenuItem>
                   </Select>
                 </FormControl>
                 <TextField
@@ -250,6 +264,12 @@ const App: React.FC = () => {
                                 label={agent.state}
                                 size="small"
                                 color={getStatusColor(agent.state)}
+                              />
+                              <Chip
+                                label={agent.agentType || 'claude'}
+                                size="small"
+                                variant="outlined"
+                                sx={{ textTransform: 'capitalize' }}
                               />
                             </Box>
                           }

@@ -11,6 +11,8 @@ const router = express.Router();
 const docker = createDocker();
 
 const AGENT_IMAGE = process.env.AGENT_IMAGE || 'deckmind/agent:latest';
+const CLAUDE_AGENT_IMAGE = process.env.CLAUDE_AGENT_IMAGE || 'deckmind/claude-agent:latest';
+const CODEX_AGENT_IMAGE = process.env.CODEX_AGENT_IMAGE || 'deckmind/codex-agent:latest';
 const DEFAULT_AGENT_PORT = Number(process.env.DEFAULT_AGENT_PORT || '8080');
 const PROJECTS_ROOT = process.env.PROJECTS_ROOT || '/host/projects';
 const WORKSPACES_DIR = process.env.WORKSPACES_DIR || '/host/workspaces';
@@ -88,6 +90,7 @@ function toAgentSummary(containerInfo) {
     state: containerInfo.State,
     status: containerInfo.Status,
     agentId: labels['com.deckmind.agentId'] || '',
+    agentType: labels['com.deckmind.agentType'] || 'claude',
     repoUrl: labels['com.deckmind.repoUrl'] || '',
     instructionsPreview: labels['com.deckmind.instructionsPreview'] || '',
     branchSlug: labels['com.deckmind.branchSlug'] || '',
@@ -104,8 +107,16 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   try {
-    const { repoUrl, instructions, branchSlug } = req.body || {};
+    const { repoUrl, instructions, branchSlug, agentType } = req.body || {};
     if (!repoUrl) return res.status(400).json({ error: 'repoUrl required' });
+
+    // Determine which agent image to use
+    let selectedAgentImage = AGENT_IMAGE; // default fallback
+    if (agentType === 'claude') {
+      selectedAgentImage = CLAUDE_AGENT_IMAGE;
+    } else if (agentType === 'codex') {
+      selectedAgentImage = CODEX_AGENT_IMAGE;
+    }
 
     // Enforce local-only workflow and normalize platform-specific paths
     let localSource;
@@ -151,6 +162,7 @@ router.post('/', async (req, res, next) => {
       ...agentLabels(agentId),
       'com.deckmind.repoUrl': localSource,
       'com.deckmind.instructionsPreview': (instructions || '').slice(0, 80),
+      'com.deckmind.agentType': agentType || 'claude',
       ...(slug ? { 'com.deckmind.branchSlug': slug } : {}),
     };
 
@@ -176,10 +188,10 @@ router.post('/', async (req, res, next) => {
 
     const container = await docker.createContainer({
       ...(containerName ? { name: containerName } : {}),
-      Image: AGENT_IMAGE,
+      Image: selectedAgentImage,
       Labels: labels,
       Env: env,
-      // No ports needed; agent runs Claude CLI and exits
+      // No ports needed; agent runs AI CLI and exits
       HostConfig: {
         // Mount the entire workspace at /workspace so agent sees /workspace and /workspace/repo
         Binds: [

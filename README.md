@@ -12,6 +12,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 ## ✨ Features
 
 - 🚀 **Launch Agents**: Start development agents with custom instructions and repository URLs
+- 🤖 **Multiple AI Models**: Support for Claude (Anthropic) and Codex (OpenAI) agents
 - 📊 **Real-time Monitoring**: Track agent status, logs, and performance metrics
 - 🖥️ **Interactive Terminal**: Direct terminal access to running agents via WebSocket
 - 📝 **Code Editor**: Integrated file browser and code editor with syntax highlighting
@@ -27,6 +28,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 - **Frontend**: React TypeScript application with Material-UI
 - **Backend**: Node.js Express API server
 - **Agent Runtime**: Ubuntu-based Docker containers with development tools
+- **AI Models**: Support for Claude (Anthropic) and Codex (OpenAI) agents
 - **Database**: File-based storage (easily replaceable with any database)
 
 ### System Diagram
@@ -45,6 +47,59 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 │  Git Controls   │    │   Projects       │    │   (Ubuntu + AI) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+## 🔐 Agent Setup
+
+Before building the agent Docker images, you need to configure the authentication credentials for each AI provider.
+
+### Claude Agent Setup
+
+1. **Copy Claude credentials:**
+   ```bash
+   # Copy your Claude configuration from your home directory
+   cp ~/.claude.json claude-agent/home/
+   cp -r ~/.claude claude-agent/home/
+   ```
+
+2. **Configure Git:**
+   ```bash
+   # Edit the Git configuration
+   nano claude-agent/home/.gitconfig
+   ```
+   Add your Git user information:
+   ```ini
+   [user]
+       name = Your Full Name
+       email = your.email@example.com
+   ```
+
+### Codex Agent Setup
+
+1. **Copy Codex credentials:**
+   ```bash
+   # Copy your Codex authentication file
+   mkdir codex-agent/home/.codex/
+   cp ~/.codex/auth.json codex-agent/home/.codex/auth.json
+   ```
+
+2. **Configure Git:**
+   ```bash
+   # Create Git configuration
+   nano codex-agent/home/.gitconfig
+   ```
+   Add your Git user information:
+   ```ini
+   [user]
+       name = Your Full Name
+       email = your.email@example.com
+   ```
+
+### Important Notes
+
+- **Security:** Never commit these credential files to version control
+- **Permissions:** Ensure the files are readable by the Docker build process
+- **Updates:** Rebuild Docker images after updating credentials
+- **Multiple Users:** Each user should set up their own credentials
 
 ## 🚀 Quick Start
 
@@ -104,9 +159,10 @@ docker compose up -d --build
 ### Launching an Agent
 
 1. Select a project from the dropdown (or enter a Git repository URL)
-2. Enter a branch slug (e.g., `add-user-auth`)
-3. Provide instructions for the agent
-4. Click "Launch Agent"
+2. Choose an agent type: **Claude** (Anthropic) or **Codex** (OpenAI)
+3. Enter a branch slug (e.g., `add-user-auth`)
+4. Provide instructions for the agent
+5. Click "Launch Agent"
 
 ### Working with Agents
 
@@ -166,6 +222,7 @@ List all agents
     "state": "running",
     "status": "Up 5 minutes",
     "agentId": "abc123",
+    "agentType": "claude",
     "repoUrl": "/path/to/project",
     "branchSlug": "add-user-auth",
     "port": null
@@ -179,9 +236,16 @@ Launch new agent
 {
   "repoUrl": "/path/to/project",
   "branchSlug": "feature-name",
+  "agentType": "claude",
   "instructions": "Implement user authentication..."
 }
 ```
+
+**Parameters:**
+- `repoUrl` (string, required): Path to the Git repository
+- `branchSlug` (string, required): Slug for the feature branch
+- `agentType` (string, optional): "claude" or "codex" (default: "claude")
+- `instructions` (string, optional): Task description for the agent
 
 #### GET `/api/agents/:id`
 Get agent details

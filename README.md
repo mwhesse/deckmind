@@ -5,6 +5,26 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org)
 
+<p align="center">
+  <img src="assets/deckmind-icon.svg" alt="Deckmind Logo" width="96" height="96">
+</p>
+
+<h3 align="center">🤖 AI-powered development agent orchestration platform</h3>
+
+<p align="center">
+  <em>Launch, monitor, and control autonomous AI development agents with real-time terminal access and Git integration</em>
+</p>
+
+<p align="center">
+  <a href="#-agent-setup">🔐 Setup</a> •
+  <a href="#-quick-start">🚀 Quick Start</a> •
+  <a href="#-features">✨ Features</a> •
+  <a href="#-api-documentation">📚 API Docs</a> •
+  <a href="#-contributing">🤝 Contributing</a>
+</p>
+
+---
+
 **AI-powered development agent orchestration platform**
 
 Deckmind is a modern web-based cockpit for launching, monitoring, and controlling multiple autonomous development agents. Each agent runs in a Docker container with full development tools, follows Git workflows, and provides real-time terminal access and code editing capabilities.

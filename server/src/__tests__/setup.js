@@ -4,7 +4,6 @@ process.env.NODE_ENV = 'test';
 // Mock environment variables
 process.env.PORT = '3001';
 process.env.AGENT_IMAGE = 'deckmind/agent:test';
-process.env.DEFAULT_AGENT_PORT = '8080';
 process.env.PROJECTS_ROOT = '/tmp/test-projects';
 process.env.WORKSPACES_DIR = '/tmp/test-workspaces';
 

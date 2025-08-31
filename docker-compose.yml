@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: deckmind/server
+    image: deckmind/server:latest
     working_dir: /app
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -17,8 +17,8 @@ services:
     env_file:
       - server/.env
     environment:
-      - AGENT_IMAGE=deckmind/agent:latest
-      - DEFAULT_AGENT_PORT=8080
+      - CLAUDE_AGENT_IMAGE=deckmind/claude-agent:latest
+      - CODEX_AGENT_IMAGE=deckmind/codex-agent:latest
       - PROJECTS_ROOT=/host/projects
       - WORKSPACES_DIR=/host/workspaces
       - PROJECTS_ROOT_HOST=${PROJECTS_ROOT_HOST}

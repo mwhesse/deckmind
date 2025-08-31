@@ -56,14 +56,12 @@ async function scanExistingAgents() {
     const summaries = list.map((c) => {
       const labels = c.Labels || {};
       const ports = c.Ports || [];
-      const pub = ports.find(p => p.PrivatePort === Number(process.env.DEFAULT_AGENT_PORT || '8080'));
       return {
         id: c.Id.substring(0, 12),
         name: c.Names?.[0]?.replace(/\//, '') || '',
         state: c.State,
         status: c.Status,
         agentId: labels['com.deckmind.agentId'] || '',
-        port: pub?.PublicPort || null,
       };
     });
     // Stash for potential diagnostics

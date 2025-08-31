@@ -10,10 +10,8 @@ const execFile = promisify(_execFile);
 const router = express.Router();
 const docker = createDocker();
 
-const AGENT_IMAGE = process.env.AGENT_IMAGE || 'deckmind/agent:latest';
 const CLAUDE_AGENT_IMAGE = process.env.CLAUDE_AGENT_IMAGE || 'deckmind/claude-agent:latest';
 const CODEX_AGENT_IMAGE = process.env.CODEX_AGENT_IMAGE || 'deckmind/codex-agent:latest';
-const DEFAULT_AGENT_PORT = Number(process.env.DEFAULT_AGENT_PORT || '8080');
 const PROJECTS_ROOT = process.env.PROJECTS_ROOT || '/host/projects';
 const WORKSPACES_DIR = process.env.WORKSPACES_DIR || '/host/workspaces';
 const PROJECTS_ROOT_HOST = process.env.PROJECTS_ROOT_HOST || process.env.PROJECTS_ROOT || PROJECTS_ROOT;
@@ -82,7 +80,6 @@ async function ensureOriginRemote(repoPath, sourcePath) {
 function toAgentSummary(containerInfo) {
   const labels = containerInfo.Labels || {};
   const ports = containerInfo.Ports || [];
-  const pub = ports.find(p => p.PrivatePort === DEFAULT_AGENT_PORT);
   return {
     id: containerInfo.Id, // full ID for reliability
     shortId: containerInfo.Id.substring(0, 12),
@@ -94,7 +91,6 @@ function toAgentSummary(containerInfo) {
     repoUrl: labels['com.deckmind.repoUrl'] || '',
     instructionsPreview: labels['com.deckmind.instructionsPreview'] || '',
     branchSlug: labels['com.deckmind.branchSlug'] || '',
-    port: pub?.PublicPort || null,
   };
 }
 
@@ -111,7 +107,7 @@ router.post('/', async (req, res, next) => {
     if (!repoUrl) return res.status(400).json({ error: 'repoUrl required' });
 
     // Determine which agent image to use
-    let selectedAgentImage = AGENT_IMAGE; // default fallback
+    let selectedAgentImage = null; // default fallback
     if (agentType === 'claude') {
       selectedAgentImage = CLAUDE_AGENT_IMAGE;
     } else if (agentType === 'codex') {
@@ -176,7 +172,6 @@ router.post('/', async (req, res, next) => {
       `OPENAI_MODEL=${process.env.OPENAI_MODEL || ''}`,
       `GIT_USERNAME=${process.env.GIT_USERNAME || ''}`,
       `GIT_EMAIL=${process.env.GIT_EMAIL || ''}`,
-      `AGENT_PORT=${DEFAULT_AGENT_PORT}`,
       // Inform agent where workspace is mounted (defaults to /workspace)
       `WORKSPACE_DIR=/workspace`,
     ];

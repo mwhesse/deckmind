@@ -147,24 +147,11 @@ Before building the agent Docker images, you need to configure the authenticatio
    nano server/.env
    ```
 
-3. **Build and run**
-   ```bash
-   # Build agent Docker image
-   docker build -t deckmind/agent:latest ./claude-agent
+3. **Configure and build agent images**
 
-   # Install server dependencies
-   cd server && npm install
+See above under Agent Setup.
 
-   # Start the application
-   npm start
-   ```
-
-4. **Open in browser**
-   ```
-   http://localhost:8088
-   ```
-
-### Docker Compose (Recommended)
+3. **Start Web-App with Docker Compose**
 
 ```bash
 # Build and start everything
@@ -173,6 +160,11 @@ docker compose up --build
 # Or run in background
 docker compose up -d --build
 ```
+
+4. **Open in browser**
+   ```
+   http://localhost:8088
+   ```
 
 ## 📖 Usage
 
@@ -212,7 +204,6 @@ Implement user authentication with JWT tokens:
 |----------|-------------|---------|
 | `PORT` | Server port | `8088` |
 | `AGENT_IMAGE` | Docker image for agents | `deckmind/agent:latest` |
-| `DEFAULT_AGENT_PORT` | Internal port for agents | `8080` |
 | `PROJECTS_ROOT` | Local projects directory | `/host/projects` |
 | `WORKSPACES_DIR` | Agent workspaces directory | `/host/workspaces` |
 | `ANTHROPIC_API_KEY` | Claude API key | Required |
@@ -433,12 +424,44 @@ Key Concepts
 - Identification: containers labeled with `com.deckmind.cockpit=true` and `com.deckmind.agentId`.
 - Ports: each agent exposes 8080 internally; the server reports the published host port.
 
-Quick Start
-1) Prereqs: Docker, Node 18+, and internet access to build images.
-2) Configure API keys: copy `server/.env.example` to `server/.env` and set keys.
-3) Install server deps: `cd server && npm install`.
-4) Build agent image: `docker build -t deckmind/agent:latest ./claude-agent`.
-5) Run server: `npm start` then open http://localhost:8088.
+## 🚀 Quick Start
+
+### Production Setup (Docker - Recommended)
+
+1) **Prerequisites**: Docker and internet access to build images
+2) **Configure API keys**: Copy `server/.env.example` to `server/.env` and set your API keys
+3) **Build everything**: `docker build -t deckmind/server:latest .` (automatically builds React client and integrates with server)
+4) **Build agent images**: `docker build -t deckmind/claude-agent:latest ./claude-agent` and `docker build -t deckmind/codex-agent:latest ./codex-agent`
+5) **Run**: `docker run -p 8088:8088 --env-file server/.env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest`
+6) **Open browser**: Navigate to `http://localhost:8088`
+
+### Development Setup (Separate Client & Server)
+
+For development with hot reloading:
+
+**Terminal 1 - Server:**
+```bash
+cd server
+npm install
+npm run dev  # Runs on port 8088
+```
+
+**Terminal 2 - Client:**
+```bash
+cd client
+npm install
+npm start  # Runs on port 3000 with hot reloading
+```
+
+**Terminal 3 - Agent Images (optional):**
+```bash
+docker build -t deckmind/claude-agent:latest ./claude-agent
+docker build -t deckmind/codex-agent:latest ./codex-agent
+```
+
+**Access:**
+- **React Client**: `http://localhost:3000` (with hot reloading)
+- **API Server**: `http://localhost:8088` (API only)
 
 Docker Compose (optional)
 - See `docker-compose.yml` to run the server with a single command: `docker compose up --build`.

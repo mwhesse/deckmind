@@ -1,199 +1,184 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Deckmind</title>
-    <link rel="icon" type="image/svg+xml" href="/deckmind-icon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/deckmind-icon-32.svg" />
-    <link rel="apple-touch-icon" href="/deckmind-icon.svg" />
-    <meta name="theme-color" content="#7c3aed" />
+    <title>Deckmind Server</title>
     <style>
-      :root {
-        --bg: #0b1020;
-        --panel: rgba(22, 28, 48, 0.6);
-        --panel-border: rgba(148, 163, 184, 0.15);
-        --text: #e5e7eb;
-        --muted: #94a3b8;
-        --accent: #7c3aed; /* purple */
-        --accent-2: #22d3ee; /* cyan */
-        --shadow: 0 10px 30px rgba(0,0,0,0.25);
-      }
-      :root.light {
-        --bg: #f6f7fb;
-        --panel: rgba(255, 255, 255, 0.9);
-        --panel-border: #e5e7eb;
-        --text: #0b1020;
-        --muted: #64748b;
-        --accent: #7c3aed;
-        --accent-2: #06b6d4;
-        --shadow: 0 10px 30px rgba(0,0,0,0.1);
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        margin: 0;
+        padding: 2rem;
+        background: linear-gradient(135deg, #0b1020 0%, #1a1a2e 100%);
+        color: #e5e7eb;
+        line-height: 1.6;
       }
 
-      html, body { height: 100%; }
-      body { font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, Apple Color Emoji, Segoe UI Emoji, sans-serif; margin: 0; color: var(--text); background:
-        radial-gradient(1200px 600px at -10% -20%, rgba(124,58,237,0.25), transparent 60%),
-        radial-gradient(800px 400px at 110% -10%, rgba(34,211,238,0.25), transparent 60%),
-        var(--bg);
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
       }
-      header { padding: 12px 16px; color: #fff; background:
-        linear-gradient(90deg, rgba(124,58,237,0.85), rgba(34,211,238,0.85));
-        box-shadow: var(--shadow);
-        display:flex; align-items:center; justify-content:space-between;
+
+      h1 {
+        color: #22d3ee;
+        text-align: center;
+        margin-bottom: 2rem;
       }
-      #themeToggle { background: transparent; border: 1px solid rgba(255,255,255,0.35); color: #fff; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-      #themeToggle:hover { background: rgba(255,255,255,0.08); }
 
-      main { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      section { border: 1px solid var(--panel-border); background: var(--panel); backdrop-filter: blur(8px); border-radius: 12px; padding: 12px; box-shadow: var(--shadow); }
-      h2 { margin-top: 0; }
-      label { display: block; margin: 6px 0 4px; }
-      input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border-radius:8px; border:1px solid var(--panel-border); background: transparent; color: var(--text); }
-      button { padding: 8px 12px; cursor: pointer; border-radius:10px; border:1px solid var(--panel-border); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.06)); color: var(--text); }
-      button:hover { border-color: var(--accent-2); box-shadow: 0 0 0 2px rgba(34,211,238,0.2) inset; }
-      .row { display: flex; gap: 8px; align-items: center; }
-      .agent { padding: 8px; border: 1px solid var(--panel-border); border-radius: 10px; margin-bottom: 8px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); }
-      .muted { color: var(--muted); }
+      .card {
+        background: rgba(22, 28, 48, 0.6);
+        border: 1px solid rgba(124, 58, 237, 0.2);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(8px);
+      }
 
-      /* Limit styling to the Git Status box only */
-      #gitStatus { background: #0b1020; color: #d1d5db; padding: 8px; border-radius: 10px; overflow: auto; }
-      /* Make xterm fill its container fully */
-      #terminal { height: 100%; display: block; }
-      #terminal .xterm { height: 100% !important; width: 100% !important; }
-      #terminal .xterm-viewport { height: 100% !important; }
-      #terminal .xterm-screen { height: 100% !important; }
-      #terminal .xterm-helpers { height: 0 !important; }
-      /* Resizer handle between editor and terminal */
-      .col-resizer { width: 6px; cursor: col-resize; background: linear-gradient(var(--accent), var(--accent-2)); border-radius: 3px; }
-      .col-resizer:hover { filter: brightness(1.2); }
-      /* CodeMirror full-height inside editor pane */
-      .CodeMirror { height: 100% !important; font-size: 12px; background: transparent; color: var(--text); }
-      .CodeMirror pre { line-height: 1.4 !important; height: auto !important; }
-      .cm-s-material { background: transparent !important; }
-      .CodeMirror-gutters { background: transparent !important; border-right: 1px solid var(--panel-border) !important; }
-      .CodeMirror-linenumber { color: var(--muted) !important; }
-      .pane-header { background: rgba(255,255,255,0.06) !important; border-bottom: 1px solid var(--panel-border) !important; }
+      .status {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #22d3ee;
+      }
+
+      .status.api {
+        background: rgba(34, 211, 238, 0.1);
+        border-left-color: #22d3ee;
+      }
+
+      .status.ui {
+        background: rgba(168, 85, 247, 0.1);
+        border-left-color: #a855f7;
+      }
+
+      .code {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 1rem;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+      }
+
+      .button {
+        display: inline-block;
+        background: linear-gradient(90deg, #7c3aed 0%, #22d3ee 100%);
+        color: white;
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        transition: transform 0.2s;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+      }
+
+      .api-endpoints {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .endpoint {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .method {
+        font-weight: bold;
+        color: #22d3ee;
+      }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Deckmind</h1>
-      <div class="row">
-        <button id="themeToggle" title="Toggle theme">Toggle Theme</button>
+    <div class="container">
+      <h1>🚀 Deckmind Server</h1>
+
+      <div class="card">
+        <h2>📊 Server Status</h2>
+        <div class="status api">
+          <strong>✅ API Server:</strong> Running on port 8088
+        </div>
+        <div class="status ui">
+          <strong>⚛️ React UI:</strong> Runs separately on port 3000 in development
+        </div>
       </div>
-    </header>
-    <main>
-      <section id="listView">
-        <h2>Launch Agent</h2>
-        <label>Project</label>
-        <div class="row">
-          <select id="projectSelect" style="flex:1 1 auto"></select>
-          <button id="refreshProjectsBtn" title="Refresh">Refresh</button>
+
+      <div class="card">
+        <h2>🔧 Development Setup</h2>
+        <p>For development with hot reloading, run client and server separately:</p>
+
+        <h3>Terminal 1 - Start Server (API)</h3>
+        <div class="code">
+cd server<br>
+npm install<br>
+npm run dev
         </div>
-        <label>Branch Slug (required)</label>
-        <input id="branchSlug" placeholder="add-cool-thing" />
-        <label>Instructions</label>
-        <textarea id="instructions" rows="6" placeholder="Short task brief for the agent..."></textarea>
-        <div class="row" style="margin-top:8px">
-          <button id="launchBtn">Start Agent</button>
+        <p>🚀 Server runs on <strong>http://localhost:8088</strong></p>
+
+        <h3>Terminal 2 - Start Client (React UI)</h3>
+        <div class="code">
+cd client<br>
+npm install<br>
+npm start
         </div>
-      </section>
-      <section>
-        <h2>Agents</h2>
-        <div id="agents"></div>
-      </section>
-      <section id="detailsView" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="position:absolute; inset:0; width: 100vw; height: 100vh; background: var(--bg); color: var(--text); border-radius: 0; box-shadow: none; display:flex; flex-direction:column;">
-          <div class="row" style="justify-content: space-between; align-items:center; padding:10px 12px; border-bottom: 1px solid #e5e7eb;">
-            <h2 style="margin:0;">Deckmind Agent Workspace</h2>
-            <button id="closeModalBtn">Close</button>
+        <p>⚛️ Client runs on <strong>http://localhost:3000</strong> with hot reloading</p>
+
+        <h3>Terminal 3 - Build Agent Images (optional)</h3>
+        <div class="code">
+docker build -t deckmind/claude-agent:latest ./claude-agent<br>
+docker build -t deckmind/codex-agent:latest ./codex-agent
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔌 API Endpoints</h2>
+        <div class="api-endpoints">
+          <div class="endpoint">
+            <div class="method">GET</div>
+            <div><strong>/api/agents</strong></div>
+            <div>List all agents</div>
           </div>
-          <div id="workspaceMeta" class="muted" style="padding:6px 12px 0; font-family: ui-monospace, monospace; font-size:12px;">
-            Path: <code id="workspacePath">-</code>
+          <div class="endpoint">
+            <div class="method">POST</div>
+            <div><strong>/api/agents</strong></div>
+            <div>Launch new agent</div>
           </div>
-          <div style="flex:1; overflow:hidden; padding:12px; display:flex; flex-direction:column; gap:12px;">
-            <div id="workspace" style="flex:1 1 auto; min-height:0; display:grid; grid-template-columns: 300px 1.25fr 6px 0.75fr; grid-template-rows: 1fr 220px; gap:12px;">
-              <!-- Files side bar -->
-              <div style="grid-row: 1 / 3; border:1px solid #e5e7eb; border-radius:6px; overflow:auto;">
-                <div style="padding:6px 8px; font-weight:600; border-bottom:1px solid #eee;">Files</div>
-                <div id="fileTree" style="font-family: ui-monospace, Menlo, monospace; font-size:12px; padding:6px 8px;"></div>
-              </div>
-              <!-- Editor pane -->
-              <div style="grid-column: 2; grid-row: 1; border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; min-height:0;">
-                <div id="editorHeader" class="pane-header" style="padding:6px 8px; font-family: ui-monospace, monospace; font-size:12px;">No file selected</div>
-                <textarea id="editor" style="flex:1; min-height:0; resize:none; border:0; outline:none; padding:8px; font-family: ui-monospace, Menlo, monospace; font-size:12px;"></textarea>
-                <div style="padding:6px 8px; border-top:1px solid #eee;">
-                  <button id="saveFileBtn">Save</button>
-                </div>
-              </div>
-              <!-- Drag handle between editor and terminal -->
-              <div id="colResizer" class="col-resizer" style="grid-column: 3; grid-row: 1;"></div>
-              <!-- Terminal pane -->
-              <div style="grid-column: 4; grid-row: 1; border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; min-height:0;">
-                <div class="row pane-header" style="padding:6px 8px; align-items:center;">
-                  <div style="font-weight:600;">Terminal</div>
-                  <div style="flex:1"></div>
-                  <span id="terminalStatus" class="muted">Checking…</span>
-                </div>
-                <div id="terminal" style="flex:1; min-height:0; border-top:0;"></div>
-              </div>
-              <!-- Git panel spanning bottom across editor+terminal -->
-              <div style="grid-column: 2 / 5; grid-row: 2; display:grid; grid-template-columns: 1fr 320px; gap:12px; align-items:start;">
-                <div style="border:1px solid #e5e7eb; border-radius:6px; overflow:auto;">
-                  <div class="pane-header" style="padding:6px 8px; font-weight:600;">Git Status</div>
-                  <pre id="gitStatus" style="margin:0; height:200px;"></pre>
-                </div>
-                <div style="border:1px solid #e5e7eb; border-radius:6px; padding:8px;">
-                  <div style="font-weight:600; margin-bottom:6px;">Commit</div>
-                  <input id="commitMsg" placeholder="Commit message" />
-                  <div class="row" style="margin-top:6px;">
-                    <button id="commitBtn">Commit</button>
-                    <button id="pushBtn">Push</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="endpoint">
+            <div class="method">GET</div>
+            <div><strong>/api/projects</strong></div>
+            <div>List available projects</div>
+          </div>
+          <div class="endpoint">
+            <div class="method">GET</div>
+            <div><strong>/api/health</strong></div>
+            <div>Server health check</div>
           </div>
         </div>
-      </section>
-    </main>
-    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
-    <script src="https://unpkg.com/xterm-addon-fit@0.9.0/dist/xterm-addon-fit.min.js"></script>
-    <!-- CodeMirror 5 for syntax-highlighted editing -->
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.16/lib/codemirror.css" />
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.16/theme/material.css" />
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.16/theme/eclipse.css" />
-    <script src="https://unpkg.com/codemirror@5.65.16/lib/codemirror.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/addon/edit/closebrackets.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/addon/edit/matchbrackets.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/javascript/javascript.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/markdown/markdown.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/xml/xml.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/css/css.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/python/python.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/yaml/yaml.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/shell/shell.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/go/go.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/rust/rust.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/clike/clike.js"></script>
-    <!-- CodeMirror 5 for syntax-highlighted editing -->
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.16/lib/codemirror.css" />
-    <script src="https://unpkg.com/codemirror@5.65.16/lib/codemirror.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/addon/edit/closebrackets.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/addon/edit/matchbrackets.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/javascript/javascript.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/markdown/markdown.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/xml/xml.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/css/css.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/htmlmixed/htmlmixed.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/python/python.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/yaml/yaml.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/shell/shell.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/go/go.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/rust/rust.js"></script>
-    <script src="https://unpkg.com/codemirror@5.65.16/mode/clike/clike.js"></script>
-    <script src="/app.js"></script>
+      </div>
+
+      <div class="card">
+        <h2>📚 Documentation</h2>
+        <p>
+          <a href="https://github.com/your-repo/deckmind" class="button" target="_blank">
+            📖 View Full Documentation
+          </a>
+        </p>
+        <p>
+          <a href="https://github.com/your-repo/deckmind/blob/main/README.md" class="button" target="_blank">
+            🚀 Quick Start Guide
+          </a>
+        </p>
+      </div>
+    </div>
   </body>
-  </html>
+</html>

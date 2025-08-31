@@ -14,7 +14,7 @@ claude-agent/__pycache__/
 claude-agent/.venv/
 claude-agent/.mypy_cache/
 claude-agent/home/*
-!claude-agent/home/README
+!claude-agent/home/README.md
 
 agent-dir/
 claude-agent-home/

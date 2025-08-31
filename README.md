@@ -59,7 +59,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/deckmind.git
+   git clone https://github.com/mwhesse/deckmind.git
    cd deckmind
    ```
 
@@ -75,7 +75,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 3. **Build and run**
    ```bash
    # Build agent Docker image
-   docker build -t deckmind/agent:latest ./agent
+   docker build -t deckmind/agent:latest ./claude-agent
 
    # Install server dependencies
    cd server && npm install
@@ -239,7 +239,7 @@ deckmind/
 │   │   ├── routes/         # API routes
 │   │   └── middleware/     # Express middleware
 │   └── public/             # Static files
-├── agent/                  # Docker agent image
+├── claude-agent/           # Docker agent image
 │   ├── Dockerfile
 │   └── scripts/
 └── docker-compose.yml
@@ -255,7 +255,7 @@ cd client && npm start
 cd server && npm run dev
 
 # Terminal 3: Build agent image (if needed)
-docker build -t deckmind/agent:latest ./agent
+docker build -t deckmind/agent:latest ./claude-agent
 ```
 
 ### Building for Production
@@ -272,7 +272,7 @@ cd client && npm run build
 docker build -t deckmind/server:latest .
 
 # Build agent image
-docker build -t deckmind/agent:latest ./agent
+docker build -t deckmind/agent:latest ./claude-agent
 ```
 
 ### Production Deployment
@@ -337,10 +337,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📖 [Documentation](https://deckmind.dev/docs)
-- 🐛 [Issue Tracker](https://github.com/yourusername/deckmind/issues)
-- 💬 [Discussions](https://github.com/yourusername/deckmind/discussions)
-- 📧 [Email Support](mailto:support@deckmind.dev)
+- 🐛 [Issue Tracker](https://github.com/mwhesse/deckmind/issues)
+- 💬 [Discussions](https://github.com/mwhesse/deckmind/discussions)
 
 ---
 
@@ -355,7 +353,7 @@ Quick Start
 1) Prereqs: Docker, Node 18+, and internet access to build images.
 2) Configure API keys: copy `server/.env.example` to `server/.env` and set keys.
 3) Install server deps: `cd server && npm install`.
-4) Build agent image: `docker build -t deckmind/agent:latest ./agent`.
+4) Build agent image: `docker build -t deckmind/agent:latest ./claude-agent`.
 5) Run server: `npm start` then open http://localhost:8088.
 
 Docker Compose (optional)
@@ -367,7 +365,7 @@ Security & Secrets
 - API keys are encrypted and securely stored.
 
 Extensibility
-- Add more agent params by extending `server/src/routes/agents.js` and reading them in `agent/main.py`.
+- Add more agent params by extending `server/src/routes/agents.js` and reading them in the agent container.
 - Modern React-based UI with plugin system for custom extensions.
 - Support for multiple AI models and custom agent templates.
 

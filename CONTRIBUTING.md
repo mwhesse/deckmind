@@ -7,7 +7,7 @@ Thank you for your interest in contributing to Deckmind! We welcome contribution
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/yourusername/deckmind.git
+   git clone https://github.com/mwhesse/deckmind.git
    cd deckmind
    ```
 3. **Set up development environment**:
@@ -33,7 +33,7 @@ Thank you for your interest in contributing to Deckmind! We welcome contribution
 ## 📋 Development Workflow
 
 ### 1. Choose an Issue
-- Check the [Issues](https://github.com/yourusername/deckmind/issues) page
+- Check the [Issues](https://github.com/mwhesse/deckmind/issues) page
 - Look for issues labeled `good first issue` or `help wanted`
 - Comment on the issue to indicate you're working on it
 

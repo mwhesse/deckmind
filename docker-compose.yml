@@ -17,7 +17,7 @@ services:
     env_file:
       - server/.env
     environment:
-      - AGENT_IMAGE=deckmind/claude-agent:latest
+      - AGENT_IMAGE=deckmind/agent:latest
       - DEFAULT_AGENT_PORT=8080
       - PROJECTS_ROOT=/host/projects
       - WORKSPACES_DIR=/host/workspaces

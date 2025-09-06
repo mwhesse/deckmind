@@ -1,6 +1,6 @@
 # Claude Agent Home Directory
 
-This directory contains configuration files for the Claude CLI agent used in the DevAgent project.
+This directory contains configuration files for the Claude CLI agent used in the Deckmind project.
 
 ## Description
 
@@ -38,7 +38,7 @@ Git configuration for commits and operations performed by the agent:
 
 ## Usage
 
-Once configured, the agent can be used through the DevAgent platform for AI-assisted development tasks.
+Once configured, the agent can be used through the Deckmind platform for AI-assisted development tasks.
 
 ## Security Note
 

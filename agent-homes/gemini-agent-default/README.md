@@ -1,6 +1,6 @@
 # Gemini Agent Home Directory
 
-This directory contains configuration files for the Google Gemini CLI agent used in the DevAgent project.
+This directory contains configuration files for the Google Gemini CLI agent used in the Deckmind project.
 
 ## Description
 
@@ -47,7 +47,7 @@ Your Git configuration for commits:
 
 ## Usage
 
-Once configured, the agent can be used through the DevAgent platform for AI-assisted development tasks using Google Gemini.
+Once configured, the agent can be used through the Deckmind platform for AI-assisted development tasks using Google Gemini.
 
 ## Security Note
 

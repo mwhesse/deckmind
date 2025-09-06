@@ -1,6 +1,6 @@
 # Codex Agent Home Directory
 
-This directory contains configuration files for the OpenAI Codex CLI agent used in the DevAgent project.
+This directory contains configuration files for the OpenAI Codex CLI agent used in the Deckmind project.
 
 ## Description
 
@@ -41,7 +41,7 @@ Git configuration for commits and operations performed by the agent:
 
 ## Usage
 
-Once configured, the agent can be used through the DevAgent platform for AI-assisted development tasks using OpenAI Codex.
+Once configured, the agent can be used through the Deckmind platform for AI-assisted development tasks using OpenAI Codex.
 
 ## Security Note
 

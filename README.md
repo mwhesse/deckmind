@@ -338,16 +338,21 @@ Before we begin, make sure you have the following installed on your system:
    This step is crucial for proper agent authentication and Git operations.
 
 #### 6. **Launch Deckmind**
-   Everything is ready! Let's start the Deckmind server:
+   Everything is ready! Let's start the Deckmind server using Docker Compose:
 
    ```bash
-   # Run the server
-   docker run -p 8088:8088 --env-file .env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest
+   # Start all services
+   docker compose up --build
    ```
 
    **Alternative: Run in background**
    ```bash
-   docker run -d -p 8088:8088 --env-file .env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest
+   docker compose up -d --build
+   ```
+
+   **Stop the services**
+   ```bash
+   docker compose down
    ```
 
 #### 7. **Access Your Deckmind Instance**

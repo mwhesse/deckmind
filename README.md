@@ -268,49 +268,156 @@ This gives the agent full access to:
 
 ## 🚀 Quick Start
 
+Welcome to Deckmind! This guide will help you get started with the AI-powered development agent orchestration platform. We'll walk through setting up everything you need to launch and manage autonomous AI development agents.
+
 ### Prerequisites
 
-- Docker and Docker Compose
-- Node.js 18+ and npm
-- Git
-- Internet connection (for AI model access)
+Before we begin, make sure you have the following installed on your system:
 
-### Installation
+- **Docker and Docker Compose** - For containerized deployment
+- **Node.js 18+ and npm** - For development (optional)
+- **Git** - For version control operations
+- **Internet connection** - Required for AI model access and package downloads
 
-1. **Clone the repository**
+### Step-by-Step Setup
+
+#### 1. **Get the Code**
+   First, let's clone the Deckmind repository to your local machine:
+
    ```bash
    git clone https://github.com/mwhesse/deckmind.git
    cd deckmind
    ```
 
-2. **Configure environment**
+#### 2. **Configure Your Environment**
+   Deckmind needs some configuration to know where your projects are and how to access AI services:
+
    ```bash
-   # Copy environment template
+   # Copy the environment template
    cp .env.example .env
 
-   # Edit with your paths and API keys
+   # Open the file and configure your settings
    nano .env
    ```
-   Make sure to set `AGENT_HOMES_ROOT_MOUNT_PATH` to the absolute path of your agent-homes directory on the host system.
 
-3. **Configure and build agent images**
+   **Important settings to configure:**
+   - Set your AI API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`)
+   - Configure `PROJECTS_ROOT` to point to your local Git repositories
+   - Set `AGENT_HOMES_ROOT_MOUNT_PATH` to the absolute path of your agent-homes directory on the host system
+   - Configure `WORKSPACES_DIR` for agent working directories
 
-See above under Agent Setup.
+#### 3. **Build the Server**
+   Now let's build the main Deckmind server that includes both the backend API and frontend:
 
-3. **Start Web-App with Docker Compose**
+   ```bash
+   # Build the server image (this automatically builds the React client too)
+   docker build -t deckmind/server:latest .
+   ```
 
-```bash
-# Build and start everything
-docker compose up --build
+#### 4. **Build Agent Images**
+   Deckmind supports multiple AI models. Let's build the agent images for the ones you want to use:
 
-# Or run in background
-docker compose up -d --build
-```
+   ```bash
+   # Build Claude agent (Anthropic)
+   docker build -t deckmind/claude-agent:latest ./agents/claude-agent
 
-4. **Open in browser**
+   # Build Codex agent (OpenAI)
+   docker build -t deckmind/codex-agent:latest ./agents/codex-agent
+
+   # Build Gemini agent (Google)
+   docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent
+   ```
+
+#### 5. **Configure Agent Homes**
+   Each agent needs its own home directory with credentials and configuration. Follow the detailed setup instructions in the agent-homes README files:
+
+   - [`agent-homes/claude-agent-default/README.md`](agent-homes/claude-agent-default/README.md) - For Claude agents
+   - [`agent-homes/codex-agent-default/README.md`](agent-homes/codex-agent-default/README.md) - For Codex agents
+   - [`agent-homes/gemini-agent-default/README.md`](agent-homes/gemini-agent-default/README.md) - For Gemini agents
+
+   This step is crucial for proper agent authentication and Git operations.
+
+#### 6. **Launch Deckmind**
+   Everything is ready! Let's start the Deckmind server:
+
+   ```bash
+   # Run the server
+   docker run -p 8088:8088 --env-file .env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest
+   ```
+
+   **Alternative: Run in background**
+   ```bash
+   docker run -d -p 8088:8088 --env-file .env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest
+   ```
+
+#### 7. **Access Your Deckmind Instance**
+   Open your web browser and navigate to:
+
    ```
    http://localhost:8088
    ```
+
+   You should now see the Deckmind dashboard where you can launch and manage your AI development agents!
+
+### 🎉 You're All Set!
+
+Congratulations! You now have a fully functional Deckmind installation. You can:
+
+- **Launch AI agents** for different development tasks
+- **Monitor agent progress** in real-time
+- **Access interactive terminals** for each running agent
+- **Edit code** directly in the web interface
+- **Manage Git operations** (commit, push, pull)
+- **Work with multiple projects** simultaneously
+
+### Troubleshooting
+
+If you encounter any issues:
+
+1. **Check Docker**: Ensure Docker is running and you have sufficient permissions
+2. **Verify environment variables**: Double-check your `.env` file settings
+3. **Agent homes**: Make sure agent home directories are properly configured
+4. **Network access**: Ensure internet connectivity for AI model access
+5. **Logs**: Check Docker container logs for detailed error messages
+
+### Next Steps
+
+- Try launching your first agent with a simple task
+- Explore the different AI models available
+- Set up multiple projects in your `PROJECTS_ROOT` directory
+- Customize agent configurations for your workflow
+
+### Development Setup (Alternative)
+
+For development with hot reloading and separate client/server processes:
+
+**Terminal 1 - Server:**
+```bash
+cd server
+npm install
+npm run dev  # Runs on port 8088
+```
+
+**Terminal 2 - Client:**
+```bash
+cd client
+npm install
+npm start  # Runs on port 3000 with hot reloading
+```
+
+**Terminal 3 - Agent Images (optional):**
+```bash
+docker build -t deckmind/claude-agent:latest ./agents/claude-agent
+docker build -t deckmind/codex-agent:latest ./agents/codex-agent
+docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent
+```
+
+**Access:**
+- **React Client**: `http://localhost:3000` (with hot reloading)
+- **API Server**: `http://localhost:8088` (API only)
+
+**Docker Compose (optional):**
+- See `docker-compose.yml` to run the server with a single command: `docker compose up --build`
 
 ## 📖 Usage
 
@@ -565,79 +672,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - 🐛 [Issue Tracker](https://github.com/mwhesse/deckmind/issues)
 - 💬 [Discussions](https://github.com/mwhesse/deckmind/discussions)
-
 ---
 
 **Deckmind** - Revolutionizing development workflows with AI-powered agents.
-
-Key Concepts
-- Agent parameters: repo URL and instructions (string). More params can be added (env, branch, tools).
-- Identification: containers labeled with `com.deckmind.cockpit=true` and `com.deckmind.agentId`.
-- Ports: each agent exposes 8080 internally; the server reports the published host port.
-
-## 🚀 Quick Start
-
-### Production Setup (Docker - Recommended)
-
-1) **Prerequisites**: Docker and internet access to build images
-2) **Configure API keys**: Copy `server/.env.example` to `server/.env` and set your API keys
-3) **Build everything**: `docker build -t deckmind/server:latest .` (automatically builds React client and integrates with server)
-4) **Build agent images**: `docker build -t deckmind/claude-agent:latest ./agents/claude-agent`, `docker build -t deckmind/codex-agent:latest ./agents/codex-agent`, and `docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent`
-5) **Run**: `docker run -p 8088:8088 --env-file server/.env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest`
-6) **Open browser**: Navigate to `http://localhost:8088`
-
-### Development Setup (Separate Client & Server)
-
-For development with hot reloading:
-
-**Terminal 1 - Server:**
-```bash
-cd server
-npm install
-npm run dev  # Runs on port 8088
-```
-
-**Terminal 2 - Client:**
-```bash
-cd client
-npm install
-npm start  # Runs on port 3000 with hot reloading
-```
-
-**Terminal 3 - Agent Images (optional):**
-```bash
-docker build -t deckmind/claude-agent:latest ./agents/claude-agent
-docker build -t deckmind/codex-agent:latest ./agents/codex-agent
-docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent
-```
-
-**Access:**
-- **React Client**: `http://localhost:3000` (with hot reloading)
-- **API Server**: `http://localhost:8088` (API only)
-
-Docker Compose (optional)
-- See `docker-compose.yml` to run the server with a single command: `docker compose up --build`.
-
-Security & Secrets
-- Provide `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` via server `.env` or per-agent env vars.
-- Git settings can be passed via `GIT_USERNAME`, `GIT_EMAIL`.
-- API keys are encrypted and securely stored.
-
-Extensibility
-- Add more agent params by extending `server/src/routes/agents.js` and reading them in the agent container.
-- Modern React-based UI with plugin system for custom extensions.
-- Support for multiple AI models and custom agent templates.
-
-Features
-- Real-time terminal access to agents
-- Integrated code editor with syntax highlighting
-- Git workflow management (status, commit, push)
-- Agent monitoring and analytics dashboard
-- Collaboration features for team development
-- Plugin system for extensibility
-
-Notes
-- Building the agent image downloads packages from apt/pip; ensure network access.
-- The cockpit lists and manages only containers labeled as Deckmind agents.
-
 

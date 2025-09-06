@@ -1,6 +1,17 @@
 # Gemini Agent Home Directory
 
-This directory contains configuration files for the Gemini CLI agent.
+This directory contains configuration files for the Google Gemini CLI agent used in the DevAgent project.
+
+## Description
+
+The Gemini agent home provides the necessary configuration for running Google Gemini-based AI agents in a containerized environment. It includes API credentials and Git configuration for seamless operation.
+
+## Prerequisites
+
+- Valid Google Gemini API key from Google AI Studio
+- Google Cloud Project ID
+- Docker environment for building and running the agent
+- Git repository access for the agent's operations
 
 ## Required Files
 
@@ -31,8 +42,12 @@ Your Git configuration for commits:
 3. **Configure .gitconfig** with your Git identity
 4. **Build the Docker image**:
    ```bash
-   docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent
+   docker-compose build gemini-agent
    ```
+
+## Usage
+
+Once configured, the agent can be used through the DevAgent platform for AI-assisted development tasks using Google Gemini.
 
 ## Security Note
 

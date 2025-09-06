@@ -1,6 +1,9 @@
 #!/bin/sh
 set -euo pipefail
 
+# Ensure agent home has the right permissions
+chown -R agent:agent /home/agent
+
 # Ensure workspace exists and is writable by non-root user
 mkdir -p /workspace /workspace/repo || true
 

@@ -159,7 +159,10 @@ Before building the agent Docker images, you need to configure the authenticatio
 
 **Environment Variable:**
 - Set `AGENT_HOMES_ROOT` to specify the path to your agent home directories
-- Defaults to `./agents` relative to the server working directory
+- Set `AGENT_HOMES_ROOT` to specify the path to your agent home directories on the server (inside docker container running the server, see docker-compose.yml)
+- Set `AGENT_HOMES_ROOT_MOUNT_PATH` to specify the absolute path to your agent home directories from the host system
+- This is required when mounting agent home directories as volumes in Docker containers
+- See `.env.example` for the correct format and example values
 
 ## 📁 Project & Workspace Management
 
@@ -283,11 +286,12 @@ This gives the agent full access to:
 2. **Configure environment**
    ```bash
    # Copy environment template
-   cp server/.env.example server/.env
+   cp .env.example .env
 
-   # Edit with your API keys
-   nano server/.env
+   # Edit with your paths and API keys
+   nano .env
    ```
+   Make sure to set `AGENT_HOMES_ROOT_MOUNT_PATH` to the absolute path of your agent-homes directory on the host system.
 
 3. **Configure and build agent images**
 
@@ -350,7 +354,8 @@ Implement user authentication with JWT tokens:
 | `GEMINI_AGENT_IMAGE` | Docker image for Gemini agents | `deckmind/gemini-agent:latest` |
 | `PROJECTS_ROOT` | Local projects directory | `/host/projects` |
 | `WORKSPACES_DIR` | Agent workspaces directory | `/host/workspaces` |
-| `AGENT_HOMES_ROOT` | Agent home directories root path | `./agents` |
+| `AGENT_HOMES_ROOT` | Path to agent home directory for the server (in docker container, see docker-compose.yml) | Required for selecting an agent home profile to start an agent |
+| `AGENT_HOMES_ROOT_MOUNT_PATH` | Absolute path to agent home directories on host | Required for volume mounting |
 | `ANTHROPIC_API_KEY` | Claude API key | Required |
 | `OPENAI_API_KEY` | OpenAI API key | Optional |
 | `GEMINI_API_KEY` | Gemini API key | Optional |

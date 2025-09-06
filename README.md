@@ -41,6 +41,20 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 - 🐳 **Docker Native**: Containerized architecture for easy deployment
 - 🔧 **Extensible**: Plugin system for custom agent types and tools
 
+## 📸 Screenshots
+
+### Agent Management Dashboard
+<a href="assets/server-ui-agents.png" target="_blank">
+  <img src="assets/server-ui-agents.png" alt="Deckmind Agent Management Dashboard" width="600" style="border: 1px solid #ddd; border-radius: 4px;">
+</a>
+<p><em>Click image to view full size</em></p>
+
+### Interactive Terminal Interface
+<a href="assets/server-ui-terminal.png" target="_blank">
+  <img src="assets/server-ui-terminal.png" alt="Deckmind Terminal Interface" width="600" style="border: 1px solid #ddd; border-radius: 4px;">
+</a>
+<p><em>Click image to view full size</em></p>
+
 ## 🏗️ Architecture
 
 ### Components

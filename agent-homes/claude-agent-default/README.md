@@ -1,0 +1,7 @@
+Copy the .claude.json and .claude directory with valid credentials (OAuth tokens) from your HOME dir into here, then clean the projects in .claude.json and delete all the projects directories under ./claude/projects, and then build the agent image (see docker-compose.yml in project root).
+
+Also add a .gitconfig for git operations of the agent against the fork
+
+[user]
+	name = Your Name
+	email = your.email@example.com

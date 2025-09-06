@@ -1,5 +1,6 @@
 node_modules/
 .env
+.npm/
 dist/
 .DS_Store
 Thumbs.db
@@ -10,15 +11,19 @@ server/npm-debug.log*
 server/pnpm-lock.yaml
 server/yarn.lock
 server/package-lock.json
-claude-agent/__pycache__/
-claude-agent/.venv/
-claude-agent/.mypy_cache/
-claude-agent/home/*
-!claude-agent/home/README.md
-codex-agent/home/*
-!codex-agent/home/README.md
 
-agent-dir/
-claude-agent-home/
+agent-homes/*
+!agent-homes/claude-agent-default
+!agent-homes/codex-agent-default
+!agent-homes/gemini-agent-default
+
+agent-homes/claude-agent-default/*
+!agent-homes/claude-agent-default/README.md
+
+agent-homes/codex-agent-default/*
+!agent-homes/codex-agent-default/README.md
+
+agent-homes/gemini-agent-default/*
+!agent-homes/gemini-agent-default/README.md
 
 client/build

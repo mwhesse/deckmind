@@ -48,6 +48,7 @@ import { Agent, Project } from './types';
 const App: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [projects, setProjects] = useState<string[]>([]);
+  const [agentHomes, setAgentHomes] = useState<Record<string, Array<{id: string, name: string, path: string}>>>({});
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -57,11 +58,13 @@ const App: React.FC = () => {
     branchSlug: '',
     instructions: '',
     agentType: 'claude',
+    agentHome: '',
   });
 
   useEffect(() => {
     loadAgents();
     loadProjects();
+    loadAgentHomes();
     const interval = setInterval(loadAgents, 5000);
     return () => clearInterval(interval as any);
   }, []);
@@ -84,6 +87,15 @@ const App: React.FC = () => {
     }
   };
 
+  const loadAgentHomes = async () => {
+    try {
+      const response = await axios.get('/api/agents/homes');
+      setAgentHomes(response.data || {});
+    } catch (error) {
+      console.error('Failed to load agent homes:', error);
+    }
+  };
+
   const handleLaunchAgent = async () => {
     try {
       await axios.post('/api/agents', {
@@ -91,9 +103,10 @@ const App: React.FC = () => {
         branchSlug: launchForm.branchSlug,
         instructions: launchForm.instructions,
         agentType: launchForm.agentType,
+        agentHome: launchForm.agentHome,
       });
       setShowLaunchDialog(false);
-      setLaunchForm({ project: '', branchSlug: '', instructions: '', agentType: 'claude' });
+      setLaunchForm({ project: '', branchSlug: '', instructions: '', agentType: 'claude', agentHome: '' });
       loadAgents();
     } catch (error) {
       console.error('Failed to launch agent:', error);
@@ -115,6 +128,7 @@ const App: React.FC = () => {
       branchSlug: `implement-${template.id}`,
       instructions: template.instructions,
       agentType: 'claude',
+      agentHome: '',
     });
     setShowLaunchDialog(true);
   };
@@ -181,11 +195,27 @@ const App: React.FC = () => {
                   <InputLabel>Agent Type</InputLabel>
                   <Select
                     value={launchForm.agentType}
-                    onChange={(e) => setLaunchForm({ ...launchForm, agentType: e.target.value })}
+                    onChange={(e) => setLaunchForm({ ...launchForm, agentType: e.target.value, agentHome: '' })}
                     label="Agent Type"
                   >
                     <MenuItem value="claude">Claude (Anthropic)</MenuItem>
                     <MenuItem value="codex">Codex (OpenAI)</MenuItem>
+                    <MenuItem value="gemini">Gemini (Google)</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Agent Profile</InputLabel>
+                  <Select
+                    value={launchForm.agentHome}
+                    onChange={(e) => setLaunchForm({ ...launchForm, agentHome: e.target.value })}
+                    label="Agent Profile"
+                    disabled={!launchForm.agentType || !agentHomes[launchForm.agentType]?.length}
+                  >
+                    {agentHomes[launchForm.agentType]?.map((home) => (
+                      <MenuItem key={home.id} value={home.id}>
+                        {home.name} ({home.id})
+                      </MenuItem>
+                    )) || []}
                   </Select>
                 </FormControl>
                 <TextField

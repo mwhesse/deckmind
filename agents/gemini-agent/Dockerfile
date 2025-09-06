@@ -8,20 +8,18 @@ RUN apk add --no-cache git curl jq bash nano tmux tini shadow util-linux expect 
 
 WORKDIR /app
 
-# Create non-root user to run Codex safely (auto UID/GID) with a valid shell
+# Create non-root user to run Gemini safely (auto UID/GID) with a valid shell
 RUN addgroup -S agent \
- && adduser -S -G agent -h /home/agent -s /bin/sh agent \
- && mkdir -p /home/agent \
- && chown -R agent:agent /home/agent
+  && adduser -S -G agent -h /home/agent -s /bin/sh agent \
+  && mkdir -p /home/agent \
+  && chown -R agent:agent /home/agent
 ENV HOME=/home/agent
 
-# Copy authentication files for non-root user (optional)
-COPY home/ /home/agent/
-#COPY home/.gitconfig* /home/agent/.gitconfig
-RUN chown -R agent:agent /home/agent
+# Authentication files will be mounted at runtime instead of copied
+# This allows for dynamic credential management without rebuilding images
 
-# Install OpenAI Codex globally within the container
-RUN npm install -g @openai/codex
+# Install Gemini CLI globally within the container
+RUN npm install -g @google/gemini-cli
 
 # Workspace for checked out repos and INSTRUCTIONS.md
 RUN mkdir -p /workspace && chown -R root:root /workspace
@@ -31,16 +29,13 @@ VOLUME ["/workspace"]
 COPY entrypoint.sh /usr/local/bin/agent-entrypoint.sh
 RUN chmod +x /usr/local/bin/agent-entrypoint.sh && chown agent:agent /usr/local/bin/agent-entrypoint.sh
 
-# Expect script to bootstrap Codex with instructions, then hand over control
-COPY run-codex.expect /usr/local/bin/run-codex.expect
-RUN chmod +x /usr/local/bin/run-codex.expect && chown agent:agent /usr/local/bin/run-codex.expect
+# Expect script to bootstrap Gemini with instructions, then hand over control
+COPY run-gemini.expect /usr/local/bin/run-gemini.expect
+RUN chmod +x /usr/local/bin/run-gemini.expect && chown agent:agent /usr/local/bin/run-gemini.expect
 
 # Bootstrap as root to fix workspace perms, then drop to agent
 COPY boot.sh /usr/local/bin/boot.sh
 RUN chmod +x /usr/local/bin/boot.sh
-
-# Fix npm permissions
-RUN chown -R agent:agent /home/agent/.npm
 
 USER root
 ENTRYPOINT ["/sbin/tini", "-g", "--", "/usr/local/bin/boot.sh"]

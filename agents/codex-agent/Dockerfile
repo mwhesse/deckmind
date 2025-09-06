@@ -8,22 +8,18 @@ RUN apk add --no-cache git curl jq bash nano tmux tini shadow util-linux expect 
 
 WORKDIR /app
 
-# Create non-root user to run Claude safely (auto UID/GID) with a valid shell
+# Create non-root user to run Codex safely (auto UID/GID) with a valid shell
 RUN addgroup -S agent \
  && adduser -S -G agent -h /home/agent -s /bin/sh agent \
  && mkdir -p /home/agent \
  && chown -R agent:agent /home/agent
 ENV HOME=/home/agent
 
-# Copy authentication files for non-root user (optional)
-# COPY home/ /home/agent/
-COPY home/.gitconfig /home/agent/.gitconfig
-COPY home/.claude.json /home/agent/.claude.json
-COPY home/.claude/ /home/agent/.claude/
-RUN chown -R agent:agent /home/agent
+# Authentication files will be mounted at runtime instead of copied
+# This allows for dynamic credential management without rebuilding images
 
-# Install Claude Code globally within the container
-RUN npm install -g @anthropic-ai/claude-code
+# Install OpenAI Codex globally within the container
+RUN npm install -g @openai/codex
 
 # Workspace for checked out repos and INSTRUCTIONS.md
 RUN mkdir -p /workspace && chown -R root:root /workspace
@@ -33,9 +29,9 @@ VOLUME ["/workspace"]
 COPY entrypoint.sh /usr/local/bin/agent-entrypoint.sh
 RUN chmod +x /usr/local/bin/agent-entrypoint.sh && chown agent:agent /usr/local/bin/agent-entrypoint.sh
 
-# Expect script to bootstrap Claude with instructions, then hand over control
-COPY run-claude.expect /usr/local/bin/run-claude.expect
-RUN chmod +x /usr/local/bin/run-claude.expect && chown agent:agent /usr/local/bin/run-claude.expect
+# Expect script to bootstrap Codex with instructions, then hand over control
+COPY run-codex.expect /usr/local/bin/run-codex.expect
+RUN chmod +x /usr/local/bin/run-codex.expect && chown agent:agent /usr/local/bin/run-codex.expect
 
 # Bootstrap as root to fix workspace perms, then drop to agent
 COPY boot.sh /usr/local/bin/boot.sh

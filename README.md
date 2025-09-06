@@ -32,7 +32,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 ## ✨ Features
 
 - 🚀 **Launch Agents**: Start development agents with custom instructions and repository URLs
-- 🤖 **Multiple AI Models**: Support for Claude (Anthropic) and Codex (OpenAI) agents
+- 🤖 **Multiple AI Models**: Support for Claude (Anthropic), Codex (OpenAI), and Gemini (Google) agents
 - 📊 **Real-time Monitoring**: Track agent status, logs, and performance metrics
 - 🖥️ **Interactive Terminal**: Direct terminal access to running agents via WebSocket
 - 📝 **Code Editor**: Integrated file browser and code editor with syntax highlighting
@@ -48,7 +48,7 @@ Deckmind is a modern web-based cockpit for launching, monitoring, and controllin
 - **Frontend**: React TypeScript application with Material-UI
 - **Backend**: Node.js Express API server
 - **Agent Runtime**: Ubuntu-based Docker containers with development tools
-- **AI Models**: Support for Claude (Anthropic) and Codex (OpenAI) agents
+- **AI Models**: Support for Claude (Anthropic), Codex (OpenAI), and Gemini (Google) agents
 - **Database**: File-based storage (easily replaceable with any database)
 
 ### System Diagram
@@ -77,14 +77,14 @@ Before building the agent Docker images, you need to configure the authenticatio
 1. **Copy Claude credentials:**
    ```bash
    # Copy your Claude configuration from your home directory
-   cp ~/.claude.json claude-agent/home/
-   cp -r ~/.claude claude-agent/home/
+   cp ~/.claude.json agents/claude-agent/home/
+   cp -r ~/.claude agents/claude-agent/home/
    ```
 
 2. **Configure Git:**
    ```bash
    # Edit the Git configuration
-   nano claude-agent/home/.gitconfig
+   nano agents/claude-agent/home/.gitconfig
    ```
    Add your Git user information:
    ```ini
@@ -98,14 +98,34 @@ Before building the agent Docker images, you need to configure the authenticatio
 1. **Copy Codex credentials:**
    ```bash
    # Copy your Codex authentication file
-   mkdir codex-agent/home/.codex/
-   cp ~/.codex/auth.json codex-agent/home/.codex/auth.json
+   mkdir -p agents/codex-agent/home/.codex/
+   cp ~/.codex/auth.json agents/codex-agent/home/.codex/auth.json
    ```
 
 2. **Configure Git:**
    ```bash
    # Create Git configuration
-   nano codex-agent/home/.gitconfig
+   nano agents/codex-agent/home/.gitconfig
+   ```
+   Add your Git user information:
+   ```ini
+   [user]
+       name = Your Full Name
+       email = your.email@example.com
+   ```
+
+### Gemini Agent Setup
+
+1. **Copy Gemini credentials:**
+   ```bash
+   # Copy your Gemini configuration
+   cp ~/.gemini.json agents/gemini-agent/home/
+   ```
+
+2. **Configure Git:**
+   ```bash
+   # Edit the Git configuration
+   nano agents/gemini-agent/home/.gitconfig
    ```
    Add your Git user information:
    ```ini
@@ -117,9 +137,29 @@ Before building the agent Docker images, you need to configure the authenticatio
 ### Important Notes
 
 - **Security:** Never commit these credential files to version control
-- **Permissions:** Ensure the files are readable by the Docker build process
-- **Updates:** Rebuild Docker images after updating credentials
-- **Multiple Users:** Each user should set up their own credentials
+- **Dynamic Mounting:** Credentials are now mounted at runtime instead of being copied into Docker images
+- **No Rebuild Required:** You can update credentials without rebuilding Docker images
+- **Multiple Users:** Each user should set up their own credentials in the agent home directories
+- **Permissions:** Ensure credential files have appropriate read permissions for the Docker daemon
+
+### New Architecture: Runtime Mounting
+
+**Key Changes:**
+- Agent credentials are no longer copied into Docker images during build
+- Credentials are mounted at runtime from the host `agents/` directory
+- This allows for dynamic credential management without image rebuilds
+- Each agent container mounts its specific home directory as read-only
+
+**Benefits:**
+- ✅ No need to rebuild images when credentials change
+- ✅ Better security through runtime credential injection
+- ✅ Easier credential rotation and management
+- ✅ Smaller, more generic Docker images
+- ✅ Better separation of concerns between images and runtime configuration
+
+**Environment Variable:**
+- Set `AGENT_HOMES_ROOT` to specify the path to your agent home directories
+- Defaults to `./agents` relative to the server working directory
 
 ## 📁 Project & Workspace Management
 
@@ -305,11 +345,15 @@ Implement user authentication with JWT tokens:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PORT` | Server port | `8088` |
-| `AGENT_IMAGE` | Docker image for agents | `deckmind/agent:latest` |
+| `CLAUDE_AGENT_IMAGE` | Docker image for Claude agents | `deckmind/claude-agent:latest` |
+| `CODEX_AGENT_IMAGE` | Docker image for Codex agents | `deckmind/codex-agent:latest` |
+| `GEMINI_AGENT_IMAGE` | Docker image for Gemini agents | `deckmind/gemini-agent:latest` |
 | `PROJECTS_ROOT` | Local projects directory | `/host/projects` |
 | `WORKSPACES_DIR` | Agent workspaces directory | `/host/workspaces` |
+| `AGENT_HOMES_ROOT` | Agent home directories root path | `./agents` |
 | `ANTHROPIC_API_KEY` | Claude API key | Required |
 | `OPENAI_API_KEY` | OpenAI API key | Optional |
+| `GEMINI_API_KEY` | Gemini API key | Optional |
 
 ### Agent Configuration
 
@@ -533,7 +577,7 @@ Key Concepts
 1) **Prerequisites**: Docker and internet access to build images
 2) **Configure API keys**: Copy `server/.env.example` to `server/.env` and set your API keys
 3) **Build everything**: `docker build -t deckmind/server:latest .` (automatically builds React client and integrates with server)
-4) **Build agent images**: `docker build -t deckmind/claude-agent:latest ./claude-agent` and `docker build -t deckmind/codex-agent:latest ./codex-agent`
+4) **Build agent images**: `docker build -t deckmind/claude-agent:latest ./agents/claude-agent`, `docker build -t deckmind/codex-agent:latest ./agents/codex-agent`, and `docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent`
 5) **Run**: `docker run -p 8088:8088 --env-file server/.env -v /var/run/docker.sock:/var/run/docker.sock deckmind/server:latest`
 6) **Open browser**: Navigate to `http://localhost:8088`
 
@@ -557,8 +601,9 @@ npm start  # Runs on port 3000 with hot reloading
 
 **Terminal 3 - Agent Images (optional):**
 ```bash
-docker build -t deckmind/claude-agent:latest ./claude-agent
-docker build -t deckmind/codex-agent:latest ./codex-agent
+docker build -t deckmind/claude-agent:latest ./agents/claude-agent
+docker build -t deckmind/codex-agent:latest ./agents/codex-agent
+docker build -t deckmind/gemini-agent:latest ./agents/gemini-agent
 ```
 
 **Access:**
@@ -589,4 +634,5 @@ Features
 Notes
 - Building the agent image downloads packages from apt/pip; ensure network access.
 - The cockpit lists and manages only containers labeled as Deckmind agents.
+
 

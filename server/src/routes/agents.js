@@ -12,10 +12,71 @@ const docker = createDocker();
 
 const CLAUDE_AGENT_IMAGE = process.env.CLAUDE_AGENT_IMAGE || 'deckmind/claude-agent:latest';
 const CODEX_AGENT_IMAGE = process.env.CODEX_AGENT_IMAGE || 'deckmind/codex-agent:latest';
+const GEMINI_AGENT_IMAGE = process.env.GEMINI_AGENT_IMAGE || 'deckmind/gemini-agent:latest';
 const PROJECTS_ROOT = process.env.PROJECTS_ROOT || '/host/projects';
 const WORKSPACES_DIR = process.env.WORKSPACES_DIR || '/host/workspaces';
 const PROJECTS_ROOT_HOST = process.env.PROJECTS_ROOT_HOST || process.env.PROJECTS_ROOT || PROJECTS_ROOT;
 const WORKSPACES_DIR_HOST = process.env.WORKSPACES_DIR_HOST || process.env.WORKSPACES_DIR || WORKSPACES_DIR;
+
+// Agent home directories (host paths - these should be absolute paths to the agent home dirs)
+const AGENT_HOMES_ROOT = process.env.AGENT_HOMES_ROOT || path.resolve(process.cwd(), 'agent-homes');
+const AGENT_HOMES_ROOT_MOUNT_PATH = process.env.AGENT_HOMES_ROOT_MOUNT_PATH;
+
+// Function to scan available agent homes
+async function getAvailableAgentHomes() {
+  try {
+    if (!fs.existsSync(AGENT_HOMES_ROOT)) {
+      return {};
+    }
+    
+    const entries = await fs.promises.readdir(AGENT_HOMES_ROOT, { withFileTypes: true });
+    const agentHomes = {};
+    
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const dirName = entry.name;
+        
+        // Check if it matches agent patterns (claude-agent*, codex-agent*, gemini-agent*)
+        let agentType = null;
+        if (dirName.startsWith('claude-agent')) {
+          agentType = 'claude';
+        } else if (dirName.startsWith('codex-agent')) {
+          agentType = 'codex';
+        } else if (dirName.startsWith('gemini-agent')) {
+          agentType = 'gemini';
+        }
+        
+        if (agentType) {
+          // Check if the directory exists and is accessible
+          const agentDirPath = path.join(AGENT_HOMES_ROOT, dirName);
+          if (fs.existsSync(agentDirPath)) {
+            if (!agentHomes[agentType]) {
+              agentHomes[agentType] = [];
+            }
+            
+            // Extract profile name (everything after agent type)
+            let profileName = dirName.replace(`${agentType}-agent`, '');
+            if (profileName.startsWith('-')) {
+              profileName = profileName.substring(1);
+            }
+            profileName = profileName || 'default';
+            
+            agentHomes[agentType].push({
+              id: dirName,
+              name: profileName,
+              path: dirName
+            });
+          }
+        }
+      }
+    }
+    
+    return agentHomes;
+  } catch (error) {
+    console.error('Error scanning agent homes:', error);
+    return {};
+  }
+}
 
 function normalizeAndValidateSource(raw) {
   if (!raw) throw new Error('repoUrl required');
@@ -101,17 +162,42 @@ router.get('/', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Get available agent homes
+router.get('/homes', async (req, res, next) => {
+  try {
+    const agentHomes = await getAvailableAgentHomes();
+    res.json(agentHomes);
+  } catch (e) { next(e); }
+});
+
 router.post('/', async (req, res, next) => {
   try {
-    const { repoUrl, instructions, branchSlug, agentType } = req.body || {};
+    const { repoUrl, instructions, branchSlug, agentType, agentHome } = req.body || {};
     if (!repoUrl) return res.status(400).json({ error: 'repoUrl required' });
 
     // Determine which agent image to use
-    let selectedAgentImage = null; // default fallback
+    let selectedAgentImage = CLAUDE_AGENT_IMAGE; // default to Claude
     if (agentType === 'claude') {
       selectedAgentImage = CLAUDE_AGENT_IMAGE;
     } else if (agentType === 'codex') {
       selectedAgentImage = CODEX_AGENT_IMAGE;
+    } else if (agentType === 'gemini') {
+      selectedAgentImage = GEMINI_AGENT_IMAGE;
+    }
+
+    // Determine agent home directory
+    let selectedAgentHome = agentHome;
+    if (!selectedAgentHome) {
+      // Fall back to default pattern
+      selectedAgentHome = `${agentType || 'claude'}-agent`;
+    }
+
+    // Verify the selected agent home exists
+    const agentHomePath = path.join(AGENT_HOMES_ROOT, selectedAgentHome);
+    if (!fs.existsSync(agentHomePath)) {
+      return res.status(400).json({
+        error: `Agent home directory not found: ${selectedAgentHome}. Please ensure the directory exists in ${AGENT_HOMES_ROOT}`
+      });
     }
 
     // Enforce local-only workflow and normalize platform-specific paths
@@ -168,8 +254,10 @@ router.post('/', async (req, res, next) => {
       `FEATURE_BRANCH=${fullBranchName}`,
       `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY || ''}`,
       `OPENAI_API_KEY=${process.env.OPENAI_API_KEY || ''}`,
+      `GEMINI_API_KEY=${process.env.GEMINI_API_KEY || ''}`,
       `ANTHROPIC_MODEL=${process.env.ANTHROPIC_MODEL || ''}`,
       `OPENAI_MODEL=${process.env.OPENAI_MODEL || ''}`,
+      `GEMINI_MODEL=${process.env.GEMINI_MODEL || ''}`,
       `GIT_USERNAME=${process.env.GIT_USERNAME || ''}`,
       `GIT_EMAIL=${process.env.GIT_EMAIL || ''}`,
       // Inform agent where workspace is mounted (defaults to /workspace)
@@ -189,8 +277,11 @@ router.post('/', async (req, res, next) => {
       // No ports needed; agent runs AI CLI and exits
       HostConfig: {
         // Mount the entire workspace at /workspace so agent sees /workspace and /workspace/repo
+        // Also mount the agent home directory for credentials and configuration
         Binds: [
           `${workspaceDirHost}:/workspace:rw`,
+          // Claude requires rw access to home dir
+          `${path.join(AGENT_HOMES_ROOT_MOUNT_PATH, selectedAgentHome)}:/home/agent:rw`,
         ],
         AutoRemove: true,
       },
